@@ -1,6 +1,8 @@
 #include "opencv2/opencv.hpp"
-#include <opencv2\core\core.hpp>
+//#include <opencv2\core\core.hpp>
 #include <opencv2/nonfree/features2d.hpp>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 #include <iostream>
 #include <algorithm>
 #include "Card.h"
@@ -70,13 +72,36 @@ vector<Card> loadDeck(){
 	return cards;
 }
 
+Card whoIsWinner(vector<Card> cards){
+
+	int firstIndex = rand() % 4;
+	cout << "First card played: " + cards[firstIndex]._name << endl;
+	int winner = firstIndex;
+
+	for (size_t i = 0; i < cards.size(); i++)
+	{
+		if (i == firstIndex)
+			continue;
+
+		if (!cards[i]._suit.compare(cards[firstIndex]._suit)){
+			if (cards[i]._value > cards[firstIndex]._value){
+				winner = i;
+			}
+		}
+	}
+	return cards[winner];
+}
+
 int main(int argc, char** argv)
 {
+
+	srand(time(NULL));
+
 	vector<Card> cards = vector<Card>();
 	//Loads all the cards to the database
 	cards = loadDeck();
 
-	Mat srcImg = imread("example.png", IMREAD_COLOR);
+	Mat srcImg = imread("table3.png", IMREAD_COLOR);
 
 	if (srcImg.empty())
 	{
@@ -88,6 +113,7 @@ int main(int argc, char** argv)
 	Mat gray, blur, thresh, contours;
 	vector<Vec4i> hierarchy;
 	vector<vector<Point>> listOfContours;
+
 	cvtColor(srcImg, gray, COLOR_BGR2GRAY);
 	GaussianBlur(gray, blur, Size(1, 1), 1000, 0);
 	threshold(blur, thresh, 120, 255, THRESH_BINARY);
@@ -156,9 +182,15 @@ int main(int argc, char** argv)
 
 		cardsInPlay.push_back(Card(homography));
 
-		namedWindow("Homography " + to_string(i + 1), 1);
-		imshow("Homography " + to_string(i + 1), homography);
+		cv::polylines(srcImg, listOfContours[i], true, Scalar(0, 0, 255), 3);
+
+		//DEBUG
+		//namedWindow("Homography " + to_string(i + 1), 1);
+		//imshow("Homography " + to_string(i + 1), homography);
 	}
+
+	namedWindow("Final", 1);
+	imshow("Final", srcImg);
 
 	FlannBasedMatcher matcher;
 
@@ -192,14 +224,22 @@ int main(int argc, char** argv)
 			}
 		}
 
+		cardsInPlay[k]._name = matchedCard._name;
+		cardsInPlay[k]._value = matchedCard._value;
+		cardsInPlay[k]._suit = matchedCard._suit;
+
 		// Drawing the results
-		namedWindow("Matched with " + matchedCard._name, 1);
+		// DEBUG
+		/*namedWindow("Matched with " + matchedCard._name, 1);
 		Mat img_matches;
 		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
-					matchedCard._cardMatrix, matchedCard._keyPoints,
-					bestMatches, img_matches);
-		imshow("Matched with " + matchedCard._name, img_matches);
+			matchedCard._cardMatrix, matchedCard._keyPoints,
+			bestMatches, img_matches);
+		imshow("Matched with " + matchedCard._name, img_matches);*/
 	}
+
+	namedWindow("Hand Winner", 1);
+	imshow("Hand Winner", whoIsWinner(cardsInPlay)._cardMatrix);
 
 
 	waitKey(0); // Wait for a keystroke in the window

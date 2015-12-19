@@ -20,6 +20,8 @@ public:
 	Mat _cardMatrix;
 	vector<KeyPoint> _keyPoints;
 	Mat _descriptors;
+	std::string _suit;
+	int _value;
 };
 
 Card::Card(Mat mat){
@@ -39,6 +41,11 @@ Card::Card(std::string name, Mat mat)
 {
 	_name = name;
 	_cardMatrix = mat;
+
+	size_t underscore = _name.find_first_of('_');
+
+	_value = atoi(_name.substr(0, underscore).c_str());
+	_suit = _name.substr(underscore +1);
 
 	//Calculade this card's keypoints and descriptors
 	SiftFeatureDetector detector(400);
