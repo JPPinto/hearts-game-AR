@@ -17,7 +17,9 @@ bool compareContours(vector<Point> a1, vector<Point> a2){
 	return a1Area > a2Area;
 }
 
-double distanceBetweenPoints(cv::Point2f p1, cv::Point2f p2){ return sqrt(pow(abs(p1.x - p2.x), 2) + pow(abs(p1.y - p2.y), 2)); }
+double distanceBetweenPoints(cv::Point2f p1, cv::Point2f p2){
+	return sqrt(pow(abs(p1.x - p2.x), 2) + pow(abs(p1.y - p2.y), 2));
+}
 
 void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
 {
@@ -42,7 +44,6 @@ void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
 	corners.push_back(br);
 	corners.push_back(bl);
 }
-
 
 vector<Mat> loadDeck(){
 	vector<Mat> cards = vector<Mat>();
@@ -76,13 +77,11 @@ int main(int argc, char** argv)
 
 	cards = loadDeck();
 
-	Mat img1 = imread("example_A.png", IMREAD_COLOR);
+	Mat srcImg = imread("example_4.png", IMREAD_COLOR);
 
-	Mat img2 = imread("cards\\14_clubs.png", CV_LOAD_IMAGE_GRAYSCALE);
-
-	if (img1.empty() || img2.empty())
+	if (srcImg.empty())
 	{
-		printf("Can't read one of the images\n");
+		printf("Can't read the source image\n");
 		getchar();
 		return -1;
 	}
@@ -90,7 +89,7 @@ int main(int argc, char** argv)
 	Mat gray, blur, thresh, contours;
 	vector<Vec4i> hierarchy;
 	vector<vector<Point>> listOfContours;
-	cvtColor(img1, gray, COLOR_BGR2GRAY);
+	cvtColor(srcImg, gray, COLOR_BGR2GRAY);
 	GaussianBlur(gray, blur, Size(1, 1), 1000, 0);
 	threshold(blur, thresh, 120, 255, THRESH_BINARY);
 
@@ -131,8 +130,6 @@ int main(int argc, char** argv)
 			corners.push_back(var);
 		}
 
-		sortCorners(corners, rect.center);
-
 		homography = Mat::zeros(726, 500, CV_8UC3);
 		Point2f quads[4];
 
@@ -149,6 +146,8 @@ int main(int argc, char** argv)
 			quads[3] = cv::Point((float)0, (float)homography.rows);
 		}
 
+		sortCorners(corners, rect.center);
+
 		Point2f temp[4];
 		temp[0] = corners[0];
 		temp[1] = corners[1];
@@ -156,42 +155,69 @@ int main(int argc, char** argv)
 		temp[3] = corners[3];
 
 		auto transform = getPerspectiveTransform(temp, quads);
-		warpPerspective(img1, homography, transform, homography.size());
+		warpPerspective(srcImg, homography, transform, homography.size());
 
-		imshow("É bom que funcione crl", homography);
+		imshow("Homography", homography);
 	}
 
 	// detecting keypoints
 	SiftFeatureDetector detector(400);
 	vector<KeyPoint> keypoints1, keypoints2;
-	detector.detect(homography, keypoints1);
-	detector.detect(img2, keypoints2);
 
 	// computing descriptors
 	SiftDescriptorExtractor extractor;
 	Mat descriptors1, descriptors2;
-	extractor.compute(homography, keypoints1, descriptors1);
-	extractor.compute(img2, keypoints2, descriptors2);
 
 	// matching descriptors
 	FlannBasedMatcher matcher;
-	vector<DMatch> matches;
-	vector<DMatch> goodMatches = vector<DMatch>();
 
-	matcher.match(descriptors1, descriptors2, matches);
+	vector<DMatch> bestMatches = vector<DMatch>();
+	Mat bestMatchImg;
+	vector<KeyPoint> bestKeypoints;
 
-	for (auto i = 0; i < matches.size(); i++)
+	//for (auto k = 0; k < numCards; k++)
+	//{
+	detector.detect(homography, keypoints1);
+	extractor.compute(homography, keypoints1, descriptors1);
+
+
+	for (auto j = 0; j < cards.size(); j++)
 	{
-		if (matches[i].distance < OPTIMIZATION_VAL){
-			goodMatches.push_back(matches[i]);
+		detector.detect(cards[j], keypoints2);
+		extractor.compute(cards[j], keypoints2, descriptors2);
+
+		vector<DMatch> matches;
+		vector<DMatch> goodMatches = vector<DMatch>();
+
+		matcher.match(descriptors1, descriptors2, matches);
+
+		for (auto i = 0; i < matches.size(); i++)
+		{
+			if (matches[i].distance < OPTIMIZATION_VAL){
+				goodMatches.push_back(matches[i]);
+			}
+		}
+
+		if (bestMatches.empty()){
+			bestMatches = goodMatches;
+			bestKeypoints = keypoints2;
+			bestMatchImg = cards[j];
+			continue;
+		}
+
+		if (goodMatches.size() > bestMatches.size()){
+			bestMatches = goodMatches;
+			bestKeypoints = keypoints2;
+			bestMatchImg = cards[j];
+			continue;
 		}
 	}
-
+	//}
 
 	// drawing the results
 	namedWindow("matches", 1);
 	Mat img_matches;
-	drawMatches(homography, keypoints1, img2, keypoints2, goodMatches, img_matches);
+	drawMatches(homography, keypoints1, bestMatchImg, bestKeypoints, bestMatches, img_matches);
 	imshow("matches", img_matches);
 
 
