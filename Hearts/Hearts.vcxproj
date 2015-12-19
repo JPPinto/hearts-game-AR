@@ -223,6 +223,9 @@
     <Image Include="PNG-cards-1.3\queen_of_spades2.png" />
     <Image Include="PNG-cards-1.3\red_joker.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Card.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

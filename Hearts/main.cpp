@@ -3,7 +3,7 @@
 #include <opencv2/nonfree/features2d.hpp>
 #include <iostream>
 #include <algorithm>
-#include <Windows.h>
+#include "Card.h"
 
 #define OPTIMIZATION_VAL 200
 #define DECK_SIZE 52
@@ -45,22 +45,24 @@ void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
 	corners.push_back(bl);
 }
 
-vector<Mat> loadDeck(){
-	vector<Mat> cards = vector<Mat>();
+vector<Card> loadDeck(){
+	vector<Card> cards = vector<Card>();
+
 	int numSuits = DECK_SIZE / 4;
-	String suits[4] = { "clubs", "diamonds", "hearts", "spades" };
+	string suits[4] = { "clubs", "diamonds", "hearts", "spades" };
 
 	for (auto i = 0; i < numSuits; i++){
 		for (auto j = 0; j < 4; j++){
 
-			String cardPath = "cards\\" + to_string(i + 2) + "_" + suits[j] + ".png";
+			string cardType = to_string(i + 2) + "_" + suits[j];
+			string cardPath = "cards\\" + cardType + ".png";
 			Mat card = imread(cardPath, IMREAD_COLOR);
 
 			if (card.empty())
-				cout << "Error reading file..." << endl;
+				cout << "Error reading file " + cardType + "..." << endl;
 			else{
-				cout << "Loading resource " + to_string(i + 2) + "_" + suits[j] + ".png" + "..." << endl;
-				cards.push_back(card);
+				cout << "Loading resource " + cardType + ".png" + "..." << endl;
+				cards.push_back(Card(cardType, card));
 			}
 		}
 	}
@@ -70,14 +72,11 @@ vector<Mat> loadDeck(){
 
 int main(int argc, char** argv)
 {
-	//namedWindow("Display window", WINDOW_AUTOSIZE); // Create a window for display.
-	//imshow("Display window", image); // Show our image inside it.
-
-	vector<Mat> cards = vector<Mat>();
-
+	vector<Card> cards = vector<Card>();
+	//Loads all the cards to the database
 	cards = loadDeck();
 
-	Mat srcImg = imread("example_4.png", IMREAD_COLOR);
+	Mat srcImg = imread("example.png", IMREAD_COLOR);
 
 	if (srcImg.empty())
 	{
@@ -93,9 +92,9 @@ int main(int argc, char** argv)
 	GaussianBlur(gray, blur, Size(1, 1), 1000, 0);
 	threshold(blur, thresh, 120, 255, THRESH_BINARY);
 
-	imshow("Display gray", gray);
-	imshow("Display blur", blur);
-	imshow("Display thresh", thresh);
+	//imshow("Display gray", gray);
+	//imshow("Display blur", blur);
+	//imshow("Display thresh", thresh);
 
 	//Save copy of thresh
 	contours = thresh;
@@ -103,9 +102,9 @@ int main(int argc, char** argv)
 	findContours(contours, listOfContours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 	sort(listOfContours.begin(), listOfContours.end(), compareContours);
 
-	int numCards = 1;
+	int numCards = 4;
 
-	Mat homography;
+	vector<Card> cardsInPlay;
 
 	for (auto i = 0; i < numCards; i++)
 	{
@@ -130,7 +129,7 @@ int main(int argc, char** argv)
 			corners.push_back(var);
 		}
 
-		homography = Mat::zeros(726, 500, CV_8UC3);
+		Mat homography = Mat::zeros(726, 500, CV_8UC3);
 		Point2f quads[4];
 
 		if (distanceBetweenPoints(corners[0], corners[1]) > distanceBetweenPoints(corners[1], corners[2])){
@@ -146,79 +145,61 @@ int main(int argc, char** argv)
 			quads[3] = cv::Point((float)0, (float)homography.rows);
 		}
 
-		sortCorners(corners, rect.center);
-
 		Point2f temp[4];
-		temp[0] = corners[0];
-		temp[1] = corners[1];
-		temp[2] = corners[2];
-		temp[3] = corners[3];
+		temp[0] = corners[3];
+		temp[1] = corners[2];
+		temp[2] = corners[1];
+		temp[3] = corners[0];
 
 		auto transform = getPerspectiveTransform(temp, quads);
 		warpPerspective(srcImg, homography, transform, homography.size());
 
-		imshow("Homography", homography);
+		cardsInPlay.push_back(Card(homography));
+
+		namedWindow("Homography " + to_string(i + 1), 1);
+		imshow("Homography " + to_string(i + 1), homography);
 	}
 
-	// detecting keypoints
-	SiftFeatureDetector detector(400);
-	vector<KeyPoint> keypoints1, keypoints2;
-
-	// computing descriptors
-	SiftDescriptorExtractor extractor;
-	Mat descriptors1, descriptors2;
-
-	// matching descriptors
 	FlannBasedMatcher matcher;
 
-	vector<DMatch> bestMatches = vector<DMatch>();
-	Mat bestMatchImg;
-	vector<KeyPoint> bestKeypoints;
-
-	//for (auto k = 0; k < numCards; k++)
-	//{
-	detector.detect(homography, keypoints1);
-	extractor.compute(homography, keypoints1, descriptors1);
-
-
-	for (auto j = 0; j < cards.size(); j++)
+	for (auto k = 0; k < numCards; k++)
 	{
-		detector.detect(cards[j], keypoints2);
-		extractor.compute(cards[j], keypoints2, descriptors2);
+		vector<DMatch> bestMatches = vector<DMatch>();
+		Card matchedCard;
 
-		vector<DMatch> matches;
-		vector<DMatch> goodMatches = vector<DMatch>();
-
-		matcher.match(descriptors1, descriptors2, matches);
-
-		for (auto i = 0; i < matches.size(); i++)
+		for (auto j = 0; j < cards.size(); j++)
 		{
-			if (matches[i].distance < OPTIMIZATION_VAL){
-				goodMatches.push_back(matches[i]);
+			vector<DMatch> matches;
+			vector<DMatch> goodMatches = vector<DMatch>();
+
+			// matching descriptors
+			matcher.match(cardsInPlay[k]._descriptors, cards[j]._descriptors, matches);
+
+			for (auto i = 0; i < matches.size(); i++)
+				if (matches[i].distance < OPTIMIZATION_VAL)
+					goodMatches.push_back(matches[i]);
+
+			if (bestMatches.empty()){
+				bestMatches = goodMatches;
+				matchedCard = cards[j];
+				continue;
+			}
+
+			if (goodMatches.size() > bestMatches.size()){
+				bestMatches = goodMatches;
+				matchedCard = cards[j];
+				continue;
 			}
 		}
 
-		if (bestMatches.empty()){
-			bestMatches = goodMatches;
-			bestKeypoints = keypoints2;
-			bestMatchImg = cards[j];
-			continue;
-		}
-
-		if (goodMatches.size() > bestMatches.size()){
-			bestMatches = goodMatches;
-			bestKeypoints = keypoints2;
-			bestMatchImg = cards[j];
-			continue;
-		}
+		// Drawing the results
+		namedWindow("Matched with " + matchedCard._name, 1);
+		Mat img_matches;
+		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
+					matchedCard._cardMatrix, matchedCard._keyPoints,
+					bestMatches, img_matches);
+		imshow("Matched with " + matchedCard._name, img_matches);
 	}
-	//}
-
-	// drawing the results
-	namedWindow("matches", 1);
-	Mat img_matches;
-	drawMatches(homography, keypoints1, bestMatchImg, bestKeypoints, bestMatches, img_matches);
-	imshow("matches", img_matches);
 
 
 	waitKey(0); // Wait for a keystroke in the window
