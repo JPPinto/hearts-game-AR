@@ -3,8 +3,10 @@
 #include <opencv2/nonfree/features2d.hpp>
 #include <iostream>
 #include <algorithm>
+#include <Windows.h>
 
 #define OPTIMIZATION_VAL 200
+#define DECK_SIZE 52
 
 using namespace cv;
 using namespace std;
@@ -42,30 +44,46 @@ void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
 }
 
 
-int main(int argc, char** argv)
-{
-	Mat image;
-	image = imread("D:\\Copy\\5º Ano\\RVAU\\Hearts_AR_Game\\x64\\Debug\\4.jpg", CV_LOAD_IMAGE_GRAYSCALE); // Read the file
+vector<Mat> loadDeck(){
+	vector<Mat> cards = vector<Mat>();
+	int numSuits = DECK_SIZE / 4;
+	String suits[4] = { "clubs", "diamonds", "hearts", "spades" };
 
-	if (!image.data) // Check for invalid input
-	{
-		cout << "Could not open or find the image" << std::endl;
-		return -1;
+	for (auto i = 0; i < numSuits; i++){
+		for (auto j = 0; j < 4; j++){
+
+			String cardPath = "cards\\" + to_string(i + 2) + "_" + suits[j] + ".png";
+			Mat card = imread(cardPath, IMREAD_COLOR);
+
+			if (card.empty())
+				cout << "Error reading file..." << endl;
+			else{
+				cout << "Loading resource " + to_string(i + 2) + "_" + suits[j] + ".png" + "..." << endl;
+				cards.push_back(card);
+			}
+		}
 	}
 
+	return cards;
+}
+
+int main(int argc, char** argv)
+{
 	//namedWindow("Display window", WINDOW_AUTOSIZE); // Create a window for display.
 	//imshow("Display window", image); // Show our image inside it.
 
-	//OutputArray output
-	//cvtColor(image, )
+	vector<Mat> cards = vector<Mat>();
 
-	Mat img1 = imread("D:\\Copy\\5º Ano\\RVAU\\Hearts_AR_Game\\Hearts\\example_A.png", IMREAD_COLOR);
-	//Mat img2 = imread("D:\\Copy\\5º Ano\\RVAU\\Hearts_AR_Game\\x64\\Debug\\4.jpg", IMREAD_COLOR);
-	Mat img2 = imread("D:\\Copy\\5º Ano\\RVAU\\Hearts_AR_Game\\Hearts\\PNG-cards-1.3\\ace_of_clubs.png", CV_LOAD_IMAGE_GRAYSCALE);
+	cards = loadDeck();
 
-	if (img1.empty())
+	Mat img1 = imread("example_A.png", IMREAD_COLOR);
+
+	Mat img2 = imread("cards\\14_clubs.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+	if (img1.empty() || img2.empty())
 	{
 		printf("Can't read one of the images\n");
+		getchar();
 		return -1;
 	}
 

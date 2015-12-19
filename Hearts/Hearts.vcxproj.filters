@@ -13,10 +13,225 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\cards">
+      <UniqueIdentifier>{9e9f76b5-9249-4d8b-a500-93983db8c1b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="PNG-cards-1.3\2_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\2_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\2_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\2_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\3_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\3_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\3_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\3_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\4_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\4_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\4_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\4_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\5_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\5_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\5_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\5_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\6_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\6_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\6_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\6_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\7_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\7_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\7_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\7_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\8_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\8_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\8_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\8_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\9_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\9_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\9_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\9_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\10_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\10_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\10_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\10_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\ace_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\ace_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\ace_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\ace_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\ace_of_spades2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\black_joker.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_clubs2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_diamonds2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_hearts2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\jack_of_spades2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_clubs2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_diamonds2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_hearts2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\king_of_spades2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_clubs.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_clubs2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_diamonds.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_diamonds2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_hearts.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_hearts2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_spades.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\queen_of_spades2.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="PNG-cards-1.3\red_joker.png">
+      <Filter>Resource Files\cards</Filter>
+    </Image>
+    <Image Include="example.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="example_4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="example_A.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

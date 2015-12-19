@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AugmentedCards", "AugmentedCards\AugmentedCards.vcxproj", "{7E4D9916-EA73-42AB-B34A-B1C455416C3D}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hearts", "Hearts\Hearts.vcxproj", "{040F19D7-C04C-41EA-A170-AF3A0028C24B}"
 EndProject
 Global
@@ -17,18 +15,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Debug|Win32.ActiveCfg = Debug|x64
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Debug|Win32.Build.0 = Debug|x64
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Debug|x64.ActiveCfg = Debug|x64
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Debug|x64.Build.0 = Debug|x64
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Release|Win32.ActiveCfg = Release|Win32
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Release|Win32.Build.0 = Release|Win32
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Release|x64.ActiveCfg = Debug|x64
-		{7E4D9916-EA73-42AB-B34A-B1C455416C3D}.Release|x64.Build.0 = Debug|x64
 		{040F19D7-C04C-41EA-A170-AF3A0028C24B}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{040F19D7-C04C-41EA-A170-AF3A0028C24B}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{040F19D7-C04C-41EA-A170-AF3A0028C24B}.Debug|Win32.ActiveCfg = Debug|Win32
