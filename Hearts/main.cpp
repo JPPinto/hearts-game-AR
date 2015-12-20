@@ -76,7 +76,7 @@ Card whoIsWinner(vector<Card> cards) {
 
 	int firstIndex = rand() % 4;
 	cout << "First card played: " + cards[firstIndex]._name << endl;
-	int winner = firstIndex;
+	size_t winner = firstIndex;
 
 	for (size_t i = 0; i < cards.size(); i++) {
 		if (i == firstIndex)
@@ -103,7 +103,7 @@ Mat loadImageToMat(string fileName) {
 }
 
 int main(int argc, char** argv) {
-	srand(time(NULL));
+	srand((unsigned int) time(NULL));
 
 	// Loads all the cards to the database
 	vector<Card> cards = loadDeck();
@@ -156,15 +156,15 @@ int main(int argc, char** argv) {
 		Point2f quads[4];
 
 		if (distanceBetweenPoints(corners[0], corners[1]) > distanceBetweenPoints(corners[1], corners[2])) {
-			quads[0] = cv::Point((float)homography.cols, (float)0);
-			quads[1] = cv::Point((float)homography.cols, (float)homography.rows);
-			quads[2] = cv::Point((float)0, (float)homography.rows);
-			quads[3] = cv::Point((float)0, (float)0);
+			quads[0] = cv::Point(homography.cols, 0);
+			quads[1] = cv::Point(homography.cols, homography.rows);
+			quads[2] = cv::Point(0, homography.rows);
+			quads[3] = cv::Point(0, 0);
 		} else {
-			quads[0] = cv::Point((float)0, (float)0);
-			quads[1] = cv::Point((float)homography.cols, (float)0);
-			quads[2] = cv::Point((float)homography.cols, (float)homography.rows);
-			quads[3] = cv::Point((float)0, (float)homography.rows);
+			quads[0] = cv::Point(0, 0);
+			quads[1] = cv::Point(homography.cols, 0);
+			quads[2] = cv::Point(homography.cols, homography.rows);
+			quads[3] = cv::Point(0, homography.rows);
 		}
 
 		Point2f temp[4];
