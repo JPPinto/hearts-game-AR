@@ -179,27 +179,30 @@ int main(int argc, char** argv) {
 		vector<DMatch> bestMatches = vector<DMatch>();
 		Card matchedCard;
 
-		for (auto j = 0; j < cards.size(); j++) {
+		// Compare obtained cards with cards in database
+#pragma omp parallel for
+		for (int j = 0; j < cards.size(); j++) {
 			vector<DMatch> matches;
 			vector<DMatch> goodMatches = vector<DMatch>();
 
-			// matching descriptors
+			// matching descriptors (matches -> output)
 			matcher.match(cardsInPlay[k]._descriptors, cards[j]._descriptors, matches);
 
-			for (auto i = 0; i < matches.size(); i++)
-				if (matches[i].distance < OPTIMIZATION_VAL)
-					goodMatches.push_back(matches[i]);
-
-			if (bestMatches.empty()) {
-				bestMatches = goodMatches;
-				matchedCard = cards[j];
-				continue;
+			for (int i = 0; i < matches.size(); i++) {
+				if (matches[i].distance < OPTIMIZATION_VAL) {
+					goodMatches.push_back(matches[i]); 
+				}
 			}
 
-			if (goodMatches.size() > bestMatches.size()) {
-				bestMatches = goodMatches;
-				matchedCard = cards[j];
-				continue;
+#pragma omp critical
+			{
+				if (bestMatches.empty()) {
+					bestMatches = goodMatches;
+					matchedCard = cards[j];
+				} else if (goodMatches.size() > bestMatches.size()) {
+					bestMatches = goodMatches;
+					matchedCard = cards[j];
+				}
 			}
 		}
 
