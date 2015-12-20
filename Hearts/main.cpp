@@ -47,14 +47,16 @@ void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center) {
 }
 
 vector<Card> loadDeck() {
+	cout << "Loading resources using " << omp_get_max_threads() << " cores." << endl;
+	unsigned int cardsLoaded = 0;
 	vector<Card> cards = vector<Card>();
 
 	int numSuits = DECK_SIZE / 4;
 	string suits[4] = { "clubs", "diamonds", "hearts", "spades" };
 
 #pragma omp parallel for
-	for (auto i = 0; i < numSuits; i++) {
-		for (auto j = 0; j < 4; j++) {
+	for (int i = 0; i < numSuits; i++) {
+		for (int j = 0; j < 4; j++) {
 
 			string cardType = to_string(i + 2) + "_" + suits[j];
 			string cardPath = "cards\\" + cardType + ".png";
@@ -64,11 +66,17 @@ vector<Card> loadDeck() {
 				cout << "Error reading file " + cardType + "..." << endl;
 			} else {
 				cout << "Loading resource " + cardType + ".png" + "..." << endl;
-				cards.push_back(Card(cardType, card));
+				Card temp = Card(cardType, card);
+#pragma omp critical
+				{
+					cards.push_back(temp);
+					cardsLoaded++;
+				}
 			}
 		}
 	}
 
+	cout << "Resources loaded. " << cardsLoaded  << " cards loaded." << endl;
 	return cards;
 }
 
@@ -133,6 +141,7 @@ int main(int argc, char** argv) {
 
 	vector<Card> cardsInPlay;
 
+// #pragma omp parallel for
 	for (auto i = 0; i < numCards; i++) {
 		auto card = listOfContours[i];
 		auto peri = arcLength(card, true);
