@@ -24,28 +24,6 @@ double distanceBetweenPoints(cv::Point2f p1, cv::Point2f p2) {
 	return sqrt(pow(abs(p1.x - p2.x), 2) + pow(abs(p1.y - p2.y), 2));
 }
 
-void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center) {
-	std::vector<cv::Point2f> top, bot;
-
-	for (int i = 0; i < corners.size(); i++) {
-		if (corners[i].y < center.y)
-			top.push_back(corners[i]);
-		else
-			bot.push_back(corners[i]);
-	}
-
-	cv::Point2f tl = top[0].x > top[1].x ? top[1] : top[0];
-	cv::Point2f tr = top[0].x > top[1].x ? top[0] : top[1];
-	cv::Point2f bl = bot[0].x > bot[1].x ? bot[1] : bot[0];
-	cv::Point2f br = bot[0].x > bot[1].x ? bot[0] : bot[1];
-
-	corners.clear();
-	corners.push_back(tl);
-	corners.push_back(tr);
-	corners.push_back(br);
-	corners.push_back(bl);
-}
-
 vector<Card> loadDeck() {
 	cout << "Loading resources using " << omp_get_max_threads() << " cores." << endl;
 	unsigned int cardsLoaded = 0;
@@ -100,10 +78,11 @@ Card whoIsWinner(vector<Card> cards) {
 }
 
 Mat loadImageToMat(string fileName) {
+	cout << "Loading image for analysis..." << endl;
 	Mat srcImg = imread(fileName, IMREAD_COLOR);
 
 	if (srcImg.empty()) {
-		printf("Can't read the source image\n");
+		cout << "Can't read the source image. Aborting." << endl;
 		exit(EXIT_FAILURE);
 	} else {
 		return srcImg;
@@ -113,11 +92,11 @@ Mat loadImageToMat(string fileName) {
 int main(int argc, char** argv) {
 	srand((unsigned int) time(NULL));
 
+	// Load image for analysis
+	Mat srcImg = loadImageToMat("table1.png");
+
 	// Loads all the cards to the database
 	vector<Card> cards = loadDeck();
-	
-	// Load image for analysis
-	Mat srcImg = loadImageToMat("table9.jpg");
 
 	Mat gray, blur, thresh, contours;
 	vector<Vec4i> hierarchy;
