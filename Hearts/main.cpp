@@ -7,7 +7,7 @@
 #include <algorithm>
 #include "Card.h"
 
-#define OPTIMIZATION_VAL 200
+#define OPTIMIZATION_VAL 250
 #define DECK_SIZE 52
 
 using namespace cv;
@@ -94,14 +94,13 @@ Card whoIsWinner(vector<Card> cards){
 
 int main(int argc, char** argv)
 {
-
 	srand(time(NULL));
 
 	vector<Card> cards = vector<Card>();
 	//Loads all the cards to the database
 	cards = loadDeck();
 
-	Mat srcImg = imread("table3.png", IMREAD_COLOR);
+	Mat srcImg = imread("table9.jpg", IMREAD_COLOR);
 
 	if (srcImg.empty())
 	{
@@ -138,8 +137,6 @@ int main(int argc, char** argv)
 		auto peri = arcLength(card, true);
 		vector<Point> approx;
 		approxPolyDP(card, approx, 0.02*peri, true);
-
-
 
 		auto rect = minAreaRect(listOfContours[i]);
 		CvPoint2D32f r[4];
@@ -189,9 +186,6 @@ int main(int argc, char** argv)
 		//imshow("Homography " + to_string(i + 1), homography);
 	}
 
-	namedWindow("Final", 1);
-	imshow("Final", srcImg);
-
 	FlannBasedMatcher matcher;
 
 	for (auto k = 0; k < numCards; k++)
@@ -230,16 +224,22 @@ int main(int argc, char** argv)
 
 		// Drawing the results
 		// DEBUG
-		/*namedWindow("Matched with " + matchedCard._name, 1);
+		namedWindow("Matched with " + matchedCard._name, 1);
 		Mat img_matches;
 		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
 			matchedCard._cardMatrix, matchedCard._keyPoints,
 			bestMatches, img_matches);
-		imshow("Matched with " + matchedCard._name, img_matches);*/
+		imshow("Matched with " + matchedCard._name, img_matches);
 	}
+	Card winner = whoIsWinner(cardsInPlay);
+
+	//displayWinner(srcImg, winner);
+
+	namedWindow("Final", 1);
+	imshow("Final", srcImg);
 
 	namedWindow("Hand Winner", 1);
-	imshow("Hand Winner", whoIsWinner(cardsInPlay)._cardMatrix);
+	imshow("Hand Winner", winner._cardMatrix);
 
 
 	waitKey(0); // Wait for a keystroke in the window
