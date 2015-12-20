@@ -8,6 +8,11 @@
 #include <omp.h>
 #include "Card.h"
 
+// Debug defines
+// #define DEBUG_INITIAL_TRANSFORMS
+// #define DEBUG_HOMOGRAPHY
+#define DEBUG_CARD_MATCHES
+
 #define OPTIMIZATION_VAL 250
 #define DECK_SIZE 52
 
@@ -102,13 +107,18 @@ int main(int argc, char** argv) {
 	vector<Vec4i> hierarchy;
 	vector<vector<Point>> listOfContours;
 
+	// Convert to grayscales
 	cvtColor(srcImg, gray, COLOR_BGR2GRAY);
+	// Gaussian blur
 	GaussianBlur(gray, blur, Size(1, 1), 1000, 0);
+	// Apply thresold
 	threshold(blur, thresh, 120, 255, THRESH_BINARY);
 
-	//imshow("Display gray", gray);
-	//imshow("Display blur", blur);
-	//imshow("Display thresh", thresh);
+#ifdef DEBUG_INITIAL_TRANSFORMS
+	imshow("Display gray", gray);
+	imshow("Display blur", blur);
+	imshow("Display thresh", thresh);
+#endif
 
 	//Save copy of thresh
 	contours = thresh;
@@ -120,7 +130,6 @@ int main(int argc, char** argv) {
 
 	vector<Card> cardsInPlay;
 
-// #pragma omp parallel for
 	for (auto i = 0; i < numCards; i++) {
 		auto card = listOfContours[i];
 		auto peri = arcLength(card, true);
@@ -168,9 +177,10 @@ int main(int argc, char** argv) {
 
 		cv::polylines(srcImg, listOfContours[i], true, Scalar(0, 0, 255), 3);
 
-		//DEBUG
-		//namedWindow("Homography " + to_string(i + 1), 1);
-		//imshow("Homography " + to_string(i + 1), homography);
+#ifdef DEBUG_HOMOGRAPHY
+		namedWindow("Homography " + to_string(i + 1), 1);
+		imshow("Homography " + to_string(i + 1), homography);
+#endif
 	}
 
 	FlannBasedMatcher matcher;
@@ -211,13 +221,14 @@ int main(int argc, char** argv) {
 		cardsInPlay[k]._suit = matchedCard._suit;
 
 		// Drawing the results
-		// DEBUG
+#ifdef DEBUG_CARD_MATCHES
 		namedWindow("Matched with " + matchedCard._name, 1);
 		Mat img_matches;
 		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
 					matchedCard._cardMatrix, matchedCard._keyPoints,
 					bestMatches, img_matches);
 		imshow("Matched with " + matchedCard._name, img_matches);
+#endif
 	}
 	Card winner = whoIsWinner(cardsInPlay);
 
