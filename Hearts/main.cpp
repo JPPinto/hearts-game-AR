@@ -5,6 +5,7 @@
 #include <time.h>       /* time */
 #include <iostream>
 #include <algorithm>
+#include <omp.h>
 #include "Card.h"
 
 #define OPTIMIZATION_VAL 250
@@ -13,22 +14,20 @@
 using namespace cv;
 using namespace std;
 
-bool compareContours(vector<Point> a1, vector<Point> a2){
+bool compareContours(vector<Point> a1, vector<Point> a2) {
 	double a1Area = fabs(contourArea(Mat(a1)));
 	double a2Area = fabs(contourArea(Mat(a2)));
 	return a1Area > a2Area;
 }
 
-double distanceBetweenPoints(cv::Point2f p1, cv::Point2f p2){
+double distanceBetweenPoints(cv::Point2f p1, cv::Point2f p2) {
 	return sqrt(pow(abs(p1.x - p2.x), 2) + pow(abs(p1.y - p2.y), 2));
 }
 
-void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
-{
+void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center) {
 	std::vector<cv::Point2f> top, bot;
 
-	for (int i = 0; i < corners.size(); i++)
-	{
+	for (int i = 0; i < corners.size(); i++) {
 		if (corners[i].y < center.y)
 			top.push_back(corners[i]);
 		else
@@ -47,22 +46,23 @@ void sortCorners(std::vector<cv::Point2f>& corners, cv::Point2f center)
 	corners.push_back(bl);
 }
 
-vector<Card> loadDeck(){
+vector<Card> loadDeck() {
 	vector<Card> cards = vector<Card>();
 
 	int numSuits = DECK_SIZE / 4;
 	string suits[4] = { "clubs", "diamonds", "hearts", "spades" };
 
-	for (auto i = 0; i < numSuits; i++){
-		for (auto j = 0; j < 4; j++){
+#pragma omp parallel for
+	for (auto i = 0; i < numSuits; i++) {
+		for (auto j = 0; j < 4; j++) {
 
 			string cardType = to_string(i + 2) + "_" + suits[j];
 			string cardPath = "cards\\" + cardType + ".png";
 			Mat card = imread(cardPath, IMREAD_COLOR);
 
-			if (card.empty())
+			if (card.empty()) {
 				cout << "Error reading file " + cardType + "..." << endl;
-			else{
+			} else {
 				cout << "Loading resource " + cardType + ".png" + "..." << endl;
 				cards.push_back(Card(cardType, card));
 			}
@@ -72,19 +72,18 @@ vector<Card> loadDeck(){
 	return cards;
 }
 
-Card whoIsWinner(vector<Card> cards){
+Card whoIsWinner(vector<Card> cards) {
 
 	int firstIndex = rand() % 4;
 	cout << "First card played: " + cards[firstIndex]._name << endl;
 	int winner = firstIndex;
 
-	for (size_t i = 0; i < cards.size(); i++)
-	{
+	for (size_t i = 0; i < cards.size(); i++) {
 		if (i == firstIndex)
 			continue;
 
-		if (!cards[i]._suit.compare(cards[firstIndex]._suit)){
-			if (cards[i]._value > cards[firstIndex]._value){
+		if (!cards[i]._suit.compare(cards[firstIndex]._suit)) {
+			if (cards[i]._value > cards[firstIndex]._value) {
 				winner = i;
 			}
 		}
@@ -92,22 +91,25 @@ Card whoIsWinner(vector<Card> cards){
 	return cards[winner];
 }
 
-int main(int argc, char** argv)
-{
+Mat loadImageToMat(string fileName) {
+	Mat srcImg = imread(fileName, IMREAD_COLOR);
+
+	if (srcImg.empty()) {
+		printf("Can't read the source image\n");
+		exit(EXIT_FAILURE);
+	} else {
+		return srcImg;
+	}
+}
+
+int main(int argc, char** argv) {
 	srand(time(NULL));
 
-	vector<Card> cards = vector<Card>();
-	//Loads all the cards to the database
-	cards = loadDeck();
-
-	Mat srcImg = imread("table9.jpg", IMREAD_COLOR);
-
-	if (srcImg.empty())
-	{
-		printf("Can't read the source image\n");
-		getchar();
-		return -1;
-	}
+	// Loads all the cards to the database
+	vector<Card> cards = loadDeck();
+	
+	// Load image for analysis
+	Mat srcImg = loadImageToMat("table9.jpg");
 
 	Mat gray, blur, thresh, contours;
 	vector<Vec4i> hierarchy;
@@ -131,8 +133,7 @@ int main(int argc, char** argv)
 
 	vector<Card> cardsInPlay;
 
-	for (auto i = 0; i < numCards; i++)
-	{
+	for (auto i = 0; i < numCards; i++) {
 		auto card = listOfContours[i];
 		auto peri = arcLength(card, true);
 		vector<Point> approx;
@@ -147,21 +148,19 @@ int main(int argc, char** argv)
 
 		vector<Point2f> corners = vector<Point2f>();
 
-		for each (Point2f var in approx)
-		{
+		for each (Point2f var in approx) {
 			corners.push_back(var);
 		}
 
 		Mat homography = Mat::zeros(726, 500, CV_8UC3);
 		Point2f quads[4];
 
-		if (distanceBetweenPoints(corners[0], corners[1]) > distanceBetweenPoints(corners[1], corners[2])){
+		if (distanceBetweenPoints(corners[0], corners[1]) > distanceBetweenPoints(corners[1], corners[2])) {
 			quads[0] = cv::Point((float)homography.cols, (float)0);
 			quads[1] = cv::Point((float)homography.cols, (float)homography.rows);
 			quads[2] = cv::Point((float)0, (float)homography.rows);
 			quads[3] = cv::Point((float)0, (float)0);
-		}
-		else {
+		} else {
 			quads[0] = cv::Point((float)0, (float)0);
 			quads[1] = cv::Point((float)homography.cols, (float)0);
 			quads[2] = cv::Point((float)homography.cols, (float)homography.rows);
@@ -188,13 +187,11 @@ int main(int argc, char** argv)
 
 	FlannBasedMatcher matcher;
 
-	for (auto k = 0; k < numCards; k++)
-	{
+	for (auto k = 0; k < numCards; k++) {
 		vector<DMatch> bestMatches = vector<DMatch>();
 		Card matchedCard;
 
-		for (auto j = 0; j < cards.size(); j++)
-		{
+		for (auto j = 0; j < cards.size(); j++) {
 			vector<DMatch> matches;
 			vector<DMatch> goodMatches = vector<DMatch>();
 
@@ -205,13 +202,13 @@ int main(int argc, char** argv)
 				if (matches[i].distance < OPTIMIZATION_VAL)
 					goodMatches.push_back(matches[i]);
 
-			if (bestMatches.empty()){
+			if (bestMatches.empty()) {
 				bestMatches = goodMatches;
 				matchedCard = cards[j];
 				continue;
 			}
 
-			if (goodMatches.size() > bestMatches.size()){
+			if (goodMatches.size() > bestMatches.size()) {
 				bestMatches = goodMatches;
 				matchedCard = cards[j];
 				continue;
@@ -227,8 +224,8 @@ int main(int argc, char** argv)
 		namedWindow("Matched with " + matchedCard._name, 1);
 		Mat img_matches;
 		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
-			matchedCard._cardMatrix, matchedCard._keyPoints,
-			bestMatches, img_matches);
+					matchedCard._cardMatrix, matchedCard._keyPoints,
+					bestMatches, img_matches);
 		imshow("Matched with " + matchedCard._name, img_matches);
 	}
 	Card winner = whoIsWinner(cardsInPlay);
