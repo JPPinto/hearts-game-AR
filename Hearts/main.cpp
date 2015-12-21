@@ -16,11 +16,11 @@
 #include "Card.h"
 
 /* Debug defines */
-#define DEBUG_INITIAL_TRANSFORMS
-#define DEBUG_HOMOGRAPHY
-#define DEBUG_CARD_MATCHES
+//#define DEBUG_INITIAL_TRANSFORMS
+//#define DEBUG_HOMOGRAPHY
+//#define DEBUG_CARD_MATCHES
 
-#define OPTIMIZATION_VAL 250
+#define OPTIMIZATION_VAL 200
 #define DECK_SIZE 52
 
 /* Gaussian blur parameters */
