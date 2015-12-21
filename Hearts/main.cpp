@@ -212,12 +212,12 @@ int main(int argc, char** argv) {
 		vector<Point2f> srcPoints;
 		vector<Point2f> destPoints;
 
-		for (size_t i = 0; i < 4; i++) {
-			srcPoints.push_back(quads[i]);
+		for (size_t j = 0; j< 4; j++) {
+			srcPoints.push_back(quads[j]);
 		}
 
-		for (size_t i = 0; i < 4; i++) {
-			destPoints.push_back(temp[i]);
+		for (size_t j = 0; j < 4; j++) {
+			destPoints.push_back(temp[j]);
 		}
 
 		/* Transform matrix that was applied to the card to obtain the homograpy */
@@ -231,8 +231,8 @@ int main(int argc, char** argv) {
 		cardsInPlay.push_back(Card(homography, winnerTextWarped, loserTextWarped, listOfContours[i]));
 
 #pragma omp parallel for
-		for (int i = 0; i < cardsInPlay.size(); i++) {
-			cardsInPlay[i].doSift();
+		for (int m = 0; m < cardsInPlay.size(); m++) {
+			cardsInPlay[m].doSift();
 		}
 
 #ifdef DEBUG_HOMOGRAPHY
