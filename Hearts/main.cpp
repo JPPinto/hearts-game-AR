@@ -11,7 +11,7 @@
 // Debug defines
 // #define DEBUG_INITIAL_TRANSFORMS
 // #define DEBUG_HOMOGRAPHY
-#define DEBUG_CARD_MATCHES
+// #define DEBUG_CARD_MATCHES
 
 #define OPTIMIZATION_VAL 250
 #define DECK_SIZE 52
@@ -47,7 +47,8 @@ vector<Card> loadDeck() {
 
 			if (card.empty()) {
 				cout << "Error reading file " + cardType + "..." << endl;
-			} else {
+			}
+			else {
 				cout << "Loading resource " + cardType + ".png" + "..." << endl;
 				Card temp = Card(cardType, card);
 #pragma omp critical
@@ -59,7 +60,7 @@ vector<Card> loadDeck() {
 		}
 	}
 
-	cout << "Resources loaded. " << cardsLoaded  << " cards loaded." << endl;
+	cout << "Resources loaded. " << cardsLoaded << " cards loaded." << endl;
 	return cards;
 }
 
@@ -89,13 +90,31 @@ Mat loadImageToMat(string fileName) {
 	if (srcImg.empty()) {
 		cout << "Can't read the source image. Aborting." << endl;
 		exit(EXIT_FAILURE);
-	} else {
+	}
+	else {
 		return srcImg;
 	}
 }
 
+Mat mergeImages(Mat img1, Mat img2){
+
+	Mat gray, gray_inv, tempFinal1, tempFinal2;
+
+	cvtColor(img2, gray, CV_BGR2GRAY);
+	threshold(gray, gray, 0, 255, CV_THRESH_BINARY);
+
+	bitwise_not(gray, gray_inv);
+
+	img1.copyTo(tempFinal1, gray_inv);
+	img2.copyTo(tempFinal2, gray);
+
+	Mat final;
+	final = tempFinal1 + tempFinal2;
+	return final;
+}
+
 int main(int argc, char** argv) {
-	srand((unsigned int) time(NULL));
+	srand((unsigned int)time(NULL));
 
 	// Load image for analysis
 	Mat srcImg = loadImageToMat("table1.png");
@@ -136,13 +155,6 @@ int main(int argc, char** argv) {
 		vector<Point> approx;
 		approxPolyDP(card, approx, 0.02*peri, true);
 
-		auto rect = minAreaRect(listOfContours[i]);
-		CvPoint2D32f r[4];
-		cvBoxPoints(rect, r);
-		vector<Point2f> rectangle;
-		for each (CvPoint2D32f var in r)
-			rectangle.push_back(var);
-
 		vector<Point2f> corners = vector<Point2f>();
 
 		for each (Point2f var in approx) {
@@ -157,7 +169,8 @@ int main(int argc, char** argv) {
 			quads[1] = cv::Point(homography.cols, homography.rows);
 			quads[2] = cv::Point(0, homography.rows);
 			quads[3] = cv::Point(0, 0);
-		} else {
+		}
+		else {
 			quads[0] = cv::Point(0, 0);
 			quads[1] = cv::Point(homography.cols, 0);
 			quads[2] = cv::Point(homography.cols, homography.rows);
@@ -173,9 +186,43 @@ int main(int argc, char** argv) {
 		auto transform = getPerspectiveTransform(temp, quads);
 		warpPerspective(srcImg, homography, transform, homography.size());
 
-		cardsInPlay.push_back(Card(homography));
-
 		cv::polylines(srcImg, listOfContours[i], true, Scalar(0, 0, 255), 3);
+
+		/* Creation and wraping of text homographies */
+
+		// Create empty matrixs for each case
+		int baseline = 0;
+		Mat loserTextMatrix = Mat::zeros(726, 500, CV_8UC3);
+		Mat winnerTextMatrix = Mat::zeros(726, 500, CV_8UC3);
+
+		//Homography of the card with only the text "Loser"
+		Size textSizeLoser = getTextSize("Loser", FONT_HERSHEY_SCRIPT_SIMPLEX, 5, 4, &baseline);
+		Point loserTextOrg((loserTextMatrix.cols - textSizeLoser.width) / 2, (loserTextMatrix.rows + textSizeLoser.height) / 2);
+		putText(loserTextMatrix, "Loser", loserTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, Scalar(0, 195, 255), 4, CV_AA);
+
+		//Homography of the card with only the text "Winner"
+		Size textSizeWinner = getTextSize("Winner", FONT_HERSHEY_SCRIPT_SIMPLEX, 5, 4, &baseline);
+		Point winnerTextOrg((winnerTextMatrix.cols - textSizeWinner.width) / 2, (winnerTextMatrix.rows + textSizeWinner.height) / 2);
+		putText(winnerTextMatrix, "Winner", winnerTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, Scalar(0, 255, 36), 4, CV_AA);
+
+		vector<Point2f> srcPoints;
+		vector<Point2f> destPoints;
+
+		for (size_t i = 0; i < 4; i++)
+			srcPoints.push_back(quads[i]);
+
+		for (size_t i = 0; i < 4; i++)
+			destPoints.push_back(temp[i]);
+
+		//Transform matrix that was applied to the card to obtain the homograpy
+		Mat textHomography = findHomography(srcPoints, destPoints);
+
+		Mat loserTextWarped;
+		Mat winnerTextWarped;
+		warpPerspective(loserTextMatrix, loserTextWarped, textHomography, srcImg.size());
+		warpPerspective(winnerTextMatrix, winnerTextWarped, textHomography, srcImg.size());
+
+		cardsInPlay.push_back(Card(homography, winnerTextWarped, loserTextWarped));
 
 #ifdef DEBUG_HOMOGRAPHY
 		namedWindow("Homography " + to_string(i + 1), 1);
@@ -200,7 +247,7 @@ int main(int argc, char** argv) {
 
 			for (int i = 0; i < matches.size(); i++) {
 				if (matches[i].distance < OPTIMIZATION_VAL) {
-					goodMatches.push_back(matches[i]); 
+					goodMatches.push_back(matches[i]);
 				}
 			}
 
@@ -209,7 +256,8 @@ int main(int argc, char** argv) {
 				if (bestMatches.empty()) {
 					bestMatches = goodMatches;
 					matchedCard = cards[j];
-				} else if (goodMatches.size() > bestMatches.size()) {
+				}
+				else if (goodMatches.size() > bestMatches.size()) {
 					bestMatches = goodMatches;
 					matchedCard = cards[j];
 				}
@@ -225,21 +273,24 @@ int main(int argc, char** argv) {
 		namedWindow("Matched with " + matchedCard._name, 1);
 		Mat img_matches;
 		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
-					matchedCard._cardMatrix, matchedCard._keyPoints,
-					bestMatches, img_matches);
+			matchedCard._cardMatrix, matchedCard._keyPoints,
+			bestMatches, img_matches);
 		imshow("Matched with " + matchedCard._name, img_matches);
 #endif
 	}
+
 	Card winner = whoIsWinner(cardsInPlay);
 
-	//displayWinner(srcImg, winner);
+	Mat finalImg = srcImg;
+
+	finalImg = mergeImages(finalImg, winner._winnerHomography);
+
+	for (size_t i = 0; i < cardsInPlay.size(); i++)
+		if (cardsInPlay[i]._name != winner._name)
+			finalImg = mergeImages(finalImg, cardsInPlay[i]._loserHomography);
 
 	namedWindow("Final", 1);
-	imshow("Final", srcImg);
-
-	namedWindow("Hand Winner", 1);
-	imshow("Hand Winner", winner._cardMatrix);
-
+	imshow("Final", finalImg);
 
 	waitKey(0); // Wait for a keystroke in the window
 	return 0;

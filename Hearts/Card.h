@@ -12,7 +12,7 @@ class Card
 {
 public:
 	Card(){}
-	Card(Mat mat);
+	Card(Mat mat, Mat w, Mat l);
 	Card(std::string name, Mat mat);
 	~Card();
 
@@ -22,12 +22,17 @@ public:
 	Mat _descriptors;
 	std::string _suit;
 	int _value;
+	Mat _winnerHomography;
+	Mat _loserHomography;
 };
 
-Card::Card(Mat mat){
+Card::Card(Mat mat, Mat w, Mat l){
 
 	_name = "Unknown";
 	_cardMatrix = mat;
+
+	_winnerHomography = w;
+	_loserHomography = l;
 
 	//Calculade this card's keypoints and descriptors
 	SiftFeatureDetector detector(400);
