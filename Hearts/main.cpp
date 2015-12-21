@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 	cvtColor(srcImg, grayScaleMat, COLOR_BGR2GRAY);
 	/* Gaussian blur */
 	GaussianBlur(grayScaleMat, gaussianBlurMat, Size(GAUSSIAN_BLUR_SIZE_X, GAUSSIAN_BLUR_SIZE_Y), GAUSSIAN_BLUR_SIGMA_X, GAUSSIAN_BLUR_SIGMA_Y, 0);
-	/* Apply thresold */
+	/* Apply threshold */
 	threshold(gaussianBlurMat, thresholdMat, 120, 255, THRESH_BINARY);
 
 #ifdef DEBUG_INITIAL_TRANSFORMS
