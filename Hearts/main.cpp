@@ -238,7 +238,7 @@ int main(int argc, char** argv) {
 #endif
 	}
 
-	cout << "Matching cards" << endl;
+	cout << "Matching cards: ";
 
 	FlannBasedMatcher matcher;
 
@@ -269,16 +269,16 @@ int main(int argc, char** argv) {
 				} else if (goodMatches.size() > bestMatches.size()) {
 					bestMatches = goodMatches;
 					matchedCard = cards[j];
-		}
-	}
+				}
+			}
 		}
 
 		cardsInPlay[k].setName(matchedCard.getName());
 		cardsInPlay[k].setValue(matchedCard.getValue());
 		cardsInPlay[k].setSuit(matchedCard.getSuit());
 
-		/* Drawing the results  */
 #ifdef DEBUG_CARD_MATCHES
+		/* Drawing the results  */
 		namedWindow("Matched with " + matchedCard._name, 1);
 		Mat img_matches;
 		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
@@ -287,6 +287,8 @@ int main(int argc, char** argv) {
 		imshow("Matched with " + matchedCard._name, img_matches);
 #endif
 	}
+
+	cout << "Cards matched." << endl;
 
 	Card winner = Card::whoIsWinner(cardsInPlay);
 
