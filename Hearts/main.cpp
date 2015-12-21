@@ -30,9 +30,10 @@
 #define GAUSSIAN_BLUR_SIGMA_Y 1000
 
 /* Colors */
-#define CONTOURCOLOR      Scalar(0,   0, 255)
-#define LOSER_FONT_COLOR  Scalar(0, 195, 255)
-#define WINNER_FONT_COLOR Scalar(0, 255,  36)
+#define CONTOURCOLOR			Scalar(0,   0, 255)
+#define WINNER_CONTOURCOLOR		Scalar(26, 255, 0)
+#define LOSER_FONT_COLOR		Scalar(0, 195, 255)
+#define WINNER_FONT_COLOR		Scalar(0, 255,  36)
 
 using namespace cv;
 using namespace std;
@@ -188,6 +189,7 @@ int main(int argc, char** argv) {
 		auto transform = getPerspectiveTransform(temp, quads);
 		warpPerspective(srcImg, homography, transform, homography.size());
 
+		/* Draw of contours along the 4 cards */
 		polylines(srcImg, listOfContours[i], true, CONTOURCOLOR, 3);
 
 		/* Creation and wraping of text homographies */
@@ -226,7 +228,7 @@ int main(int argc, char** argv) {
 		warpPerspective(loserTextMatrix, loserTextWarped, textHomography, srcImg.size());
 		warpPerspective(winnerTextMatrix, winnerTextWarped, textHomography, srcImg.size());
 
-		cardsInPlay.push_back(Card(homography, winnerTextWarped, loserTextWarped));
+		cardsInPlay.push_back(Card(homography, winnerTextWarped, loserTextWarped, listOfContours[i]));
 
 #pragma omp parallel for
 		for (int i = 0; i < cardsInPlay.size(); i++) {
@@ -294,6 +296,8 @@ int main(int argc, char** argv) {
 	Card winner = Card::whoIsWinner(cardsInPlay);
 
 	Mat finalImg = srcImg;
+
+	polylines(finalImg, winner.getContours(), true, WINNER_CONTOURCOLOR, 3);
 
 	for (size_t i = 0; i < cardsInPlay.size(); i++) {
 		if (cardsInPlay[i].getName() != winner.getName()) {

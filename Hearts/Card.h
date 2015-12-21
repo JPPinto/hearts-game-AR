@@ -22,10 +22,11 @@ private:
 	Mat _cardMatrix;
 	vector<KeyPoint> _keyPoints;
 	Mat _descriptors;
+	vector<Point> _contours;
 
 public:
 	Card() {}
-	Card(Mat mat, Mat winnerHomography, Mat loserHomography);
+	Card(Mat mat, Mat winnerHomography, Mat loserHomography, vector<Point> c);
 	Card(std::string name, Mat mat);
 	~Card();
 
@@ -44,16 +45,21 @@ public:
 	Mat getLoserHomography();
 	Mat getDescriptors();
 
+	vector<Point> getContours();
+	void setContours(vector<Point> c);
+
 	/* Static methods */
 	static Card whoIsWinner(vector<Card> cards);
 };
 
-Card::Card(Mat mat, Mat winnerHomography, Mat loserHomography) {
+Card::Card(Mat mat, Mat winnerHomography, Mat loserHomography, vector<Point> c) {
 	_name = "Unknown";
 	_cardMatrix = mat;
 
 	_winnerHomography = winnerHomography;
 	_loserHomography = loserHomography;
+
+	_contours = c;
 }
 
 Card::Card(std::string name, Mat mat) {
@@ -109,6 +115,14 @@ Mat Card::getLoserHomography() {
 
 Mat Card::getDescriptors() {
 	return _descriptors;
+}
+
+vector<Point> Card::getContours(){
+	return _contours;
+}
+
+void Card::setContours(vector<Point> c){
+	_contours = c;
 }
 
 Card Card::whoIsWinner(vector<Card> cards) {
