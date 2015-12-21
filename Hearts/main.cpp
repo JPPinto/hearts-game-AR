@@ -48,14 +48,13 @@ double distanceBetweenPoints(Point2f p1, Point2f p2) {
 }
 
 vector<Card> loadDeck() {
-	cout << "Loading resources using " << omp_get_max_threads() << " cores." << endl;
+	cout << "Loading card images: ";
 	unsigned int cardsLoaded = 0;
 	vector<Card> cards = vector<Card>();
 
 	int numSuits = DECK_SIZE / 4;
 	string suits[4] = { "clubs", "diamonds", "hearts", "spades" };
 
-#pragma omp parallel for
 	for (int i = 0; i < numSuits; i++) {
 		for (int j = 0; j < 4; j++) {
 
@@ -65,37 +64,40 @@ vector<Card> loadDeck() {
 
 			if (card.empty()) {
 				cout << "Error reading file " + cardType + "..." << endl;
-			}
-			else {
-				cout << "Loading resource " + cardType + ".png" + "..." << endl;
+			} else {
 				Card temp = Card(cardType, card);
-#pragma omp critical
-				{
-					cards.push_back(temp);
-					cardsLoaded++;
-				}
+				cards.push_back(temp);
+				cardsLoaded++;
 			}
 		}
 	}
+	cout << cardsLoaded << " cards loaded." << endl;
 
-	cout << "Resources loaded. " << cardsLoaded << " cards loaded." << endl;
+	cout << "Performing sift using " << omp_get_max_threads() << " threads: ";
+
+#pragma omp parallel for
+	for (int i = 0; i < cards.size(); i++) {
+		cards[i].doSift();
+	}
+
+	cout << " sift done." << endl;
 	return cards;
 }
 
 Mat loadImageToMat(string fileName) {
-	cout << "Loading image for analysis..." << endl;
+	cout << "Loading image for analysis: ";
 	Mat srcImg = imread(fileName, IMREAD_COLOR);
 
 	if (srcImg.empty()) {
 		cout << "Can't read the source image. Aborting." << endl;
 		exit(EXIT_FAILURE);
-	}
-	else {
+	} else {
+		cout << "Image loaded." << endl;
 		return srcImg;
 	}
 }
 
-Mat mergeImages(Mat img1, Mat img2){
+Mat mergeImages(Mat img1, Mat img2) {
 
 	Mat gray, gray_inv, tempFinal1, tempFinal2;
 
@@ -115,19 +117,19 @@ Mat mergeImages(Mat img1, Mat img2){
 int main(int argc, char** argv) {
 	srand((unsigned int)time(NULL));
 
-	// Load image for analysis
+	/* Load image for analysis */
 	Mat srcImg = loadImageToMat("table1.png");
 
-	// Loads all the cards to the database
+	/* Loads all the cards to the database */
 	vector<Card> cards = loadDeck();
 
 	Mat grayScaleMat, gaussianBlurMat, thresholdMat;
 
-	// Convert to grayscales
+	/* Convert to grayscales */
 	cvtColor(srcImg, grayScaleMat, COLOR_BGR2GRAY);
-	// Gaussian blur
+	/* Gaussian blur */
 	GaussianBlur(grayScaleMat, gaussianBlurMat, Size(GAUSSIAN_BLUR_SIZE_X, GAUSSIAN_BLUR_SIZE_Y), GAUSSIAN_BLUR_SIGMA_X, GAUSSIAN_BLUR_SIGMA_Y, 0);
-	// Apply thresold
+	/* Apply thresold */
 	threshold(gaussianBlurMat, thresholdMat, 120, 255, THRESH_BINARY);
 
 #ifdef DEBUG_INITIAL_TRANSFORMS
@@ -136,7 +138,7 @@ int main(int argc, char** argv) {
 	imshow("Display thresh", thresh);
 #endif
 
-	// Save copy of thresh
+	/* Save copy of thresh */
 	Mat contoursMat = thresholdMat;
 
 	vector<Vec4i> hierarchy;
@@ -189,17 +191,17 @@ int main(int argc, char** argv) {
 
 		/* Creation and wraping of text homographies */
 
-		// Create empty matrixs for each case
+		/* Create empty matrixs for each case */
 		int baseline = 0;
 		Mat loserTextMatrix = Mat::zeros(726, 500, CV_8UC3);
 		Mat winnerTextMatrix = Mat::zeros(726, 500, CV_8UC3);
 
-		// Homography of the card with only the text "Loser"
+		/* Homography of the card with only the text "Loser" */
 		Size textSizeLoser = getTextSize("Loser", FONT_HERSHEY_SCRIPT_SIMPLEX, 5, 4, &baseline);
 		Point loserTextOrg((loserTextMatrix.cols - textSizeLoser.width) / 2, (loserTextMatrix.rows + textSizeLoser.height) / 2);
 		putText(loserTextMatrix, "Loser", loserTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, LOSER_FONT_COLOR, 4, CV_AA);
 
-		// Homography of the card with only the text "Winner"
+		/* Homography of the card with only the text "Winner" */
 		Size textSizeWinner = getTextSize("Winner", FONT_HERSHEY_SCRIPT_SIMPLEX, 5, 4, &baseline);
 		Point winnerTextOrg((winnerTextMatrix.cols - textSizeWinner.width) / 2, (winnerTextMatrix.rows + textSizeWinner.height) / 2);
 		putText(winnerTextMatrix, "Winner", winnerTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, WINNER_FONT_COLOR, 4, CV_AA);
@@ -210,12 +212,12 @@ int main(int argc, char** argv) {
 		for (size_t i = 0; i < 4; i++) {
 			srcPoints.push_back(quads[i]);
 		}
-			
+
 		for (size_t i = 0; i < 4; i++) {
 			destPoints.push_back(temp[i]);
 		}
 
-		//Transform matrix that was applied to the card to obtain the homograpy
+		/* Transform matrix that was applied to the card to obtain the homograpy */
 		Mat textHomography = findHomography(srcPoints, destPoints);
 
 		Mat loserTextWarped;
@@ -224,6 +226,11 @@ int main(int argc, char** argv) {
 		warpPerspective(winnerTextMatrix, winnerTextWarped, textHomography, srcImg.size());
 
 		cardsInPlay.push_back(Card(homography, winnerTextWarped, loserTextWarped));
+
+#pragma omp parallel for
+		for (int i = 0; i < cardsInPlay.size(); i++) {
+			cardsInPlay[i].doSift();
+		}
 
 #ifdef DEBUG_HOMOGRAPHY
 		namedWindow("Homography " + to_string(i + 1), 1);
@@ -239,14 +246,14 @@ int main(int argc, char** argv) {
 		vector<DMatch> bestMatches = vector<DMatch>();
 		Card matchedCard;
 
-		// Compare obtained cards with cards in database
+		/* Compare obtained cards with cards in database  */
 #pragma omp parallel for
 		for (int j = 0; j < cards.size(); j++) {
 			vector<DMatch> matches;
 			vector<DMatch> goodMatches = vector<DMatch>();
 
-			// matching descriptors (matches -> output)
-			matcher.match(cardsInPlay[k]._descriptors, cards[j]._descriptors, matches);
+			/* matching descriptors (matches -> output)  */
+			matcher.match(cardsInPlay[k].getDescriptors(), cards[j].getDescriptors(), matches);
 
 			for (int i = 0; i < matches.size(); i++) {
 				if (matches[i].distance < OPTIMIZATION_VAL) {
@@ -259,25 +266,24 @@ int main(int argc, char** argv) {
 				if (bestMatches.empty()) {
 					bestMatches = goodMatches;
 					matchedCard = cards[j];
-				}
-				else if (goodMatches.size() > bestMatches.size()) {
+				} else if (goodMatches.size() > bestMatches.size()) {
 					bestMatches = goodMatches;
 					matchedCard = cards[j];
-				}
-			}
+		}
+	}
 		}
 
-		cardsInPlay[k]._name = matchedCard._name;
-		cardsInPlay[k]._value = matchedCard._value;
-		cardsInPlay[k]._suit = matchedCard._suit;
+		cardsInPlay[k].setName(matchedCard.getName());
+		cardsInPlay[k].setValue(matchedCard.getValue());
+		cardsInPlay[k].setSuit(matchedCard.getSuit());
 
-		// Drawing the results
+		/* Drawing the results  */
 #ifdef DEBUG_CARD_MATCHES
 		namedWindow("Matched with " + matchedCard._name, 1);
 		Mat img_matches;
 		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
-			matchedCard._cardMatrix, matchedCard._keyPoints,
-			bestMatches, img_matches);
+					matchedCard._cardMatrix, matchedCard._keyPoints,
+					bestMatches, img_matches);
 		imshow("Matched with " + matchedCard._name, img_matches);
 #endif
 	}
@@ -287,16 +293,16 @@ int main(int argc, char** argv) {
 	Mat finalImg = srcImg;
 
 	for (size_t i = 0; i < cardsInPlay.size(); i++) {
-		if (cardsInPlay[i]._name != winner._name) {
-			finalImg = mergeImages(finalImg, cardsInPlay[i]._loserHomography);
+		if (cardsInPlay[i].getName() != winner.getName()) {
+			finalImg = mergeImages(finalImg, cardsInPlay[i].getLoserHomography());
 		} else {
-			finalImg = mergeImages(finalImg, winner._winnerHomography);
+			finalImg = mergeImages(finalImg, winner.getWinnerHomography());
 		}
 	}
 
 	namedWindow("Final", 1);
 	imshow("Final", finalImg);
 
-	waitKey(0); // Wait for a keystroke in the window
+	waitKey(0); /* Wait for a keystroke in the window */
 	return 0;
 }
