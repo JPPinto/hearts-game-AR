@@ -121,11 +121,10 @@ int main(int argc, char** argv) {
 
 	string srcImgPath;
 
-	if (argc < 2 || argc > 2){
+	if (argc < 2 || argc > 2) {
 		cout << "Image for detection was not provided. Using default." << endl;
 		srcImgPath = "table1.png";
-	}
-	else {
+	} else {
 		srcImgPath = argv[1];
 	}
 
@@ -222,7 +221,7 @@ int main(int argc, char** argv) {
 		vector<Point2f> srcPoints;
 		vector<Point2f> destPoints;
 
-		for (size_t j = 0; j< 4; j++) {
+		for (size_t j = 0; j < 4; j++) {
 			srcPoints.push_back(quads[j]);
 		}
 
@@ -299,7 +298,7 @@ int main(int argc, char** argv) {
 					bestMatches, img_matches);
 		imshow("Matched with " + matchedCard._name, img_matches);
 #endif
-	}
+				}
 
 	cout << "Cards matched." << endl;
 
@@ -322,4 +321,4 @@ int main(int argc, char** argv) {
 
 	waitKey(0); /* Wait for a keystroke in the window */
 	return 0;
-}
+			}
