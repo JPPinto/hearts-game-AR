@@ -16,9 +16,9 @@
 #include "Card.h"
 
 /* Debug defines */
-// #define DEBUG_INITIAL_TRANSFORMS
-// #define DEBUG_HOMOGRAPHY
-// #define DEBUG_CARD_MATCHES
+#define DEBUG_INITIAL_TRANSFORMS
+#define DEBUG_HOMOGRAPHY
+#define DEBUG_CARD_MATCHES
 
 #define OPTIMIZATION_VAL 250
 #define DECK_SIZE 52
@@ -144,9 +144,9 @@ int main(int argc, char** argv) {
 	threshold(gaussianBlurMat, thresholdMat, 120, 255, THRESH_BINARY);
 
 #ifdef DEBUG_INITIAL_TRANSFORMS
-	imshow("Display gray", gray);
-	imshow("Display blur", blur);
-	imshow("Display thresh", thresh);
+	imshow("Display gray", grayScaleMat);
+	imshow("Display blur", gaussianBlurMat);
+	imshow("Display thresh", thresholdMat);
 #endif
 
 	/* Save copy of thresh */
@@ -291,14 +291,14 @@ int main(int argc, char** argv) {
 
 #ifdef DEBUG_CARD_MATCHES
 		/* Drawing the results  */
-		namedWindow("Matched with " + matchedCard._name, 1);
+		namedWindow("Matched with " + matchedCard.getName(), 1);
 		Mat img_matches;
-		drawMatches(cardsInPlay[k]._cardMatrix, cardsInPlay[k]._keyPoints,
-					matchedCard._cardMatrix, matchedCard._keyPoints,
+		drawMatches(cardsInPlay[k].getCardMatrix(), cardsInPlay[k].getKeyPoints(),
+					matchedCard.getCardMatrix(), matchedCard.getKeyPoints(),
 					bestMatches, img_matches);
-		imshow("Matched with " + matchedCard._name, img_matches);
+		imshow("Matched with " + matchedCard.getName(), img_matches);
 #endif
-				}
+	}
 
 	cout << "Cards matched." << endl;
 
@@ -321,4 +321,4 @@ int main(int argc, char** argv) {
 
 	waitKey(0); /* Wait for a keystroke in the window */
 	return 0;
-			}
+}

@@ -44,6 +44,8 @@ public:
 	Mat getWinnerHomography();
 	Mat getLoserHomography();
 	Mat getDescriptors();
+	Mat getCardMatrix();
+	vector<KeyPoint> getKeyPoints();
 
 	vector<Point> getContours();
 	void setContours(vector<Point> c);
@@ -115,6 +117,14 @@ Mat Card::getLoserHomography() {
 
 Mat Card::getDescriptors() {
 	return _descriptors;
+}
+
+Mat Card::getCardMatrix() {
+	return _cardMatrix;
+}
+
+vector<KeyPoint> Card::getKeyPoints() {
+	return _keyPoints;
 }
 
 vector<Point> Card::getContours(){
