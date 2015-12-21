@@ -90,6 +90,7 @@ Mat loadImageToMat(string fileName) {
 
 	if (srcImg.empty()) {
 		cout << "Can't read the source image. Aborting." << endl;
+		getchar();
 		exit(EXIT_FAILURE);
 	} else {
 		cout << "Image loaded." << endl;
