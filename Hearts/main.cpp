@@ -1,14 +1,21 @@
+/* General includes */
+#include <stdlib.h>
+#include <time.h>
+#include <iostream>
+#include <algorithm>
+
+/* OpenCV includes */
 #include "opencv2/opencv.hpp"
 //#include <opencv2\core\core.hpp>
 #include <opencv2/nonfree/features2d.hpp>
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>       /* time */
-#include <iostream>
-#include <algorithm>
+
+/* OpenMP includes */
 #include <omp.h>
+
+/* This app includes */
 #include "Card.h"
 
-// Debug defines
+/* Debug defines */
 // #define DEBUG_INITIAL_TRANSFORMS
 // #define DEBUG_HOMOGRAPHY
 // #define DEBUG_CARD_MATCHES
@@ -16,10 +23,16 @@
 #define OPTIMIZATION_VAL 250
 #define DECK_SIZE 52
 
+/* Gaussian blur parameters */
 #define GAUSSIAN_BLUR_SIZE_X 1
 #define GAUSSIAN_BLUR_SIZE_Y 1
 #define GAUSSIAN_BLUR_SIGMA_X 1000
 #define GAUSSIAN_BLUR_SIGMA_Y 1000
+
+/* Colors */
+#define CONTOURCOLOR      Scalar(0,   0, 255)
+#define LOSER_FONT_COLOR  Scalar(0, 195, 255)
+#define WINNER_FONT_COLOR Scalar(0, 255,  36)
 
 using namespace cv;
 using namespace std;
@@ -30,7 +43,7 @@ bool compareContours(vector<Point> a1, vector<Point> a2) {
 	return a1Area > a2Area;
 }
 
-double distanceBetweenPoints(cv::Point2f p1, cv::Point2f p2) {
+double distanceBetweenPoints(Point2f p1, Point2f p2) {
 	return sqrt(pow(abs(p1.x - p2.x), 2) + pow(abs(p1.y - p2.y), 2));
 }
 
@@ -67,25 +80,6 @@ vector<Card> loadDeck() {
 
 	cout << "Resources loaded. " << cardsLoaded << " cards loaded." << endl;
 	return cards;
-}
-
-Card whoIsWinner(vector<Card> cards) {
-
-	int firstIndex = rand() % 4;
-	cout << "First card played: " + cards[firstIndex]._name << endl;
-	size_t winner = firstIndex;
-
-	for (size_t i = 0; i < cards.size(); i++) {
-		if (i == firstIndex)
-			continue;
-
-		if (!cards[i]._suit.compare(cards[firstIndex]._suit)) {
-			if (cards[i]._value > cards[firstIndex]._value) {
-				winner = i;
-			}
-		}
-	}
-	return cards[winner];
 }
 
 Mat loadImageToMat(string fileName) {
@@ -127,9 +121,7 @@ int main(int argc, char** argv) {
 	// Loads all the cards to the database
 	vector<Card> cards = loadDeck();
 
-	Mat grayScaleMat, gaussianBlurMat, thresholdMat, contoursMat;
-	vector<Vec4i> hierarchy;
-	vector<vector<Point>> listOfContours;
+	Mat grayScaleMat, gaussianBlurMat, thresholdMat;
 
 	// Convert to grayscales
 	cvtColor(srcImg, grayScaleMat, COLOR_BGR2GRAY);
@@ -144,17 +136,20 @@ int main(int argc, char** argv) {
 	imshow("Display thresh", thresh);
 #endif
 
-	//Save copy of thresh
-	contoursMat = thresholdMat;
+	// Save copy of thresh
+	Mat contoursMat = thresholdMat;
+
+	vector<Vec4i> hierarchy;
+	vector<vector<Point>> listOfContours;
 
 	findContours(contoursMat, listOfContours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 	sort(listOfContours.begin(), listOfContours.end(), compareContours);
 
-	int numCards = 4;
+	int numCardsOnDisplay = 4;
 
 	vector<Card> cardsInPlay;
 
-	for (auto i = 0; i < numCards; i++) {
+	for (auto i = 0; i < numCardsOnDisplay; i++) {
 		auto card = listOfContours[i];
 		auto peri = arcLength(card, true);
 		vector<Point> approx;
@@ -170,15 +165,15 @@ int main(int argc, char** argv) {
 		Point2f quads[4];
 
 		if (distanceBetweenPoints(corners[0], corners[1]) > distanceBetweenPoints(corners[1], corners[2])) {
-			quads[0] = cv::Point(homography.cols, 0);
-			quads[1] = cv::Point(homography.cols, homography.rows);
-			quads[2] = cv::Point(0, homography.rows);
-			quads[3] = cv::Point(0, 0);
+			quads[0] = Point(homography.cols, 0);
+			quads[1] = Point(homography.cols, homography.rows);
+			quads[2] = Point(0, homography.rows);
+			quads[3] = Point(0, 0);
 		} else {
-			quads[0] = cv::Point(0, 0);
-			quads[1] = cv::Point(homography.cols, 0);
-			quads[2] = cv::Point(homography.cols, homography.rows);
-			quads[3] = cv::Point(0, homography.rows);
+			quads[0] = Point(0, 0);
+			quads[1] = Point(homography.cols, 0);
+			quads[2] = Point(homography.cols, homography.rows);
+			quads[3] = Point(0, homography.rows);
 		}
 
 		Point2f temp[4];
@@ -190,7 +185,7 @@ int main(int argc, char** argv) {
 		auto transform = getPerspectiveTransform(temp, quads);
 		warpPerspective(srcImg, homography, transform, homography.size());
 
-		cv::polylines(srcImg, listOfContours[i], true, Scalar(0, 0, 255), 3);
+		polylines(srcImg, listOfContours[i], true, CONTOURCOLOR, 3);
 
 		/* Creation and wraping of text homographies */
 
@@ -199,15 +194,15 @@ int main(int argc, char** argv) {
 		Mat loserTextMatrix = Mat::zeros(726, 500, CV_8UC3);
 		Mat winnerTextMatrix = Mat::zeros(726, 500, CV_8UC3);
 
-		//Homography of the card with only the text "Loser"
+		// Homography of the card with only the text "Loser"
 		Size textSizeLoser = getTextSize("Loser", FONT_HERSHEY_SCRIPT_SIMPLEX, 5, 4, &baseline);
 		Point loserTextOrg((loserTextMatrix.cols - textSizeLoser.width) / 2, (loserTextMatrix.rows + textSizeLoser.height) / 2);
-		putText(loserTextMatrix, "Loser", loserTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, Scalar(0, 195, 255), 4, CV_AA);
+		putText(loserTextMatrix, "Loser", loserTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, LOSER_FONT_COLOR, 4, CV_AA);
 
-		//Homography of the card with only the text "Winner"
+		// Homography of the card with only the text "Winner"
 		Size textSizeWinner = getTextSize("Winner", FONT_HERSHEY_SCRIPT_SIMPLEX, 5, 4, &baseline);
 		Point winnerTextOrg((winnerTextMatrix.cols - textSizeWinner.width) / 2, (winnerTextMatrix.rows + textSizeWinner.height) / 2);
-		putText(winnerTextMatrix, "Winner", winnerTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, Scalar(0, 255, 36), 4, CV_AA);
+		putText(winnerTextMatrix, "Winner", winnerTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, WINNER_FONT_COLOR, 4, CV_AA);
 
 		vector<Point2f> srcPoints;
 		vector<Point2f> destPoints;
@@ -240,7 +235,7 @@ int main(int argc, char** argv) {
 
 	FlannBasedMatcher matcher;
 
-	for (auto k = 0; k < numCards; k++) {
+	for (auto k = 0; k < numCardsOnDisplay; k++) {
 		vector<DMatch> bestMatches = vector<DMatch>();
 		Card matchedCard;
 
@@ -287,7 +282,7 @@ int main(int argc, char** argv) {
 #endif
 	}
 
-	Card winner = whoIsWinner(cardsInPlay);
+	Card winner = Card::whoIsWinner(cardsInPlay);
 
 	Mat finalImg = srcImg;
 

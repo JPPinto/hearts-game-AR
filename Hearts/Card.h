@@ -24,6 +24,8 @@ public:
 	int _value;
 	Mat _winnerHomography;
 	Mat _loserHomography;
+
+	static Card whoIsWinner(vector<Card> cards);
 };
 
 Card::Card(Mat mat, Mat w, Mat l){
@@ -58,6 +60,25 @@ Card::Card(std::string name, Mat mat)
 
 	detector.detect(_cardMatrix, _keyPoints);
 	extractor.compute(_cardMatrix, _keyPoints, _descriptors);
+}
+
+Card Card::whoIsWinner(vector<Card> cards) {
+
+	int firstIndex = rand() % 4;
+	cout << "First card played: " + cards[firstIndex]._name << endl;
+	size_t winner = firstIndex;
+
+	for (size_t i = 0; i < cards.size(); i++) {
+		if (i == firstIndex)
+			continue;
+
+		if (!cards[i]._suit.compare(cards[firstIndex]._suit)) {
+			if (cards[i]._value > cards[firstIndex]._value) {
+				winner = i;
+			}
+		}
+	}
+	return cards[winner];
 }
 
 Card::~Card()
