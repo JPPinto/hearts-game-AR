@@ -16,6 +16,11 @@
 #define OPTIMIZATION_VAL 250
 #define DECK_SIZE 52
 
+#define GAUSSIAN_BLUR_SIZE_X 1
+#define GAUSSIAN_BLUR_SIZE_Y 1
+#define GAUSSIAN_BLUR_SIGMA_X 1000
+#define GAUSSIAN_BLUR_SIGMA_Y 1000
+
 using namespace cv;
 using namespace std;
 
@@ -122,16 +127,16 @@ int main(int argc, char** argv) {
 	// Loads all the cards to the database
 	vector<Card> cards = loadDeck();
 
-	Mat gray, blur, thresh, contours;
+	Mat grayScaleMat, gaussianBlurMat, thresholdMat, contoursMat;
 	vector<Vec4i> hierarchy;
 	vector<vector<Point>> listOfContours;
 
 	// Convert to grayscales
-	cvtColor(srcImg, gray, COLOR_BGR2GRAY);
+	cvtColor(srcImg, grayScaleMat, COLOR_BGR2GRAY);
 	// Gaussian blur
-	GaussianBlur(gray, blur, Size(1, 1), 1000, 0);
+	GaussianBlur(grayScaleMat, gaussianBlurMat, Size(GAUSSIAN_BLUR_SIZE_X, GAUSSIAN_BLUR_SIZE_Y), GAUSSIAN_BLUR_SIGMA_X, GAUSSIAN_BLUR_SIGMA_Y, 0);
 	// Apply thresold
-	threshold(blur, thresh, 120, 255, THRESH_BINARY);
+	threshold(gaussianBlurMat, thresholdMat, 120, 255, THRESH_BINARY);
 
 #ifdef DEBUG_INITIAL_TRANSFORMS
 	imshow("Display gray", gray);
@@ -140,9 +145,9 @@ int main(int argc, char** argv) {
 #endif
 
 	//Save copy of thresh
-	contours = thresh;
+	contoursMat = thresholdMat;
 
-	findContours(contours, listOfContours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
+	findContours(contoursMat, listOfContours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 	sort(listOfContours.begin(), listOfContours.end(), compareContours);
 
 	int numCards = 4;
@@ -169,8 +174,7 @@ int main(int argc, char** argv) {
 			quads[1] = cv::Point(homography.cols, homography.rows);
 			quads[2] = cv::Point(0, homography.rows);
 			quads[3] = cv::Point(0, 0);
-		}
-		else {
+		} else {
 			quads[0] = cv::Point(0, 0);
 			quads[1] = cv::Point(homography.cols, 0);
 			quads[2] = cv::Point(homography.cols, homography.rows);
@@ -208,11 +212,13 @@ int main(int argc, char** argv) {
 		vector<Point2f> srcPoints;
 		vector<Point2f> destPoints;
 
-		for (size_t i = 0; i < 4; i++)
+		for (size_t i = 0; i < 4; i++) {
 			srcPoints.push_back(quads[i]);
-
-		for (size_t i = 0; i < 4; i++)
+		}
+			
+		for (size_t i = 0; i < 4; i++) {
 			destPoints.push_back(temp[i]);
+		}
 
 		//Transform matrix that was applied to the card to obtain the homograpy
 		Mat textHomography = findHomography(srcPoints, destPoints);
@@ -229,6 +235,8 @@ int main(int argc, char** argv) {
 		imshow("Homography " + to_string(i + 1), homography);
 #endif
 	}
+
+	cout << "Matching cards" << endl;
 
 	FlannBasedMatcher matcher;
 
@@ -283,11 +291,13 @@ int main(int argc, char** argv) {
 
 	Mat finalImg = srcImg;
 
-	finalImg = mergeImages(finalImg, winner._winnerHomography);
-
-	for (size_t i = 0; i < cardsInPlay.size(); i++)
-		if (cardsInPlay[i]._name != winner._name)
+	for (size_t i = 0; i < cardsInPlay.size(); i++) {
+		if (cardsInPlay[i]._name != winner._name) {
 			finalImg = mergeImages(finalImg, cardsInPlay[i]._loserHomography);
+		} else {
+			finalImg = mergeImages(finalImg, winner._winnerHomography);
+		}
+	}
 
 	namedWindow("Final", 1);
 	imshow("Final", finalImg);
