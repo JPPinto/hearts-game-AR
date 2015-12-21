@@ -119,8 +119,18 @@ Mat mergeImages(Mat img1, Mat img2) {
 int main(int argc, char** argv) {
 	srand((unsigned int)time(NULL));
 
+	string srcImgPath;
+
+	if (argc < 2 || argc > 2){
+		cout << "Image for detection was not provided. Using default." << endl;
+		srcImgPath = "table1.png";
+	}
+	else {
+		srcImgPath = argv[1];
+	}
+
 	/* Load image for analysis */
-	Mat srcImg = loadImageToMat("table1.png");
+	Mat srcImg = loadImageToMat(srcImgPath);
 
 	/* Loads all the cards to the database */
 	vector<Card> cards = loadDeck();
