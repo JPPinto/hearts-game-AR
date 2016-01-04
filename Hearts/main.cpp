@@ -198,6 +198,17 @@ int main(int argc, char** argv) {
 		auto transform = getPerspectiveTransform(temp, quads);
 		warpPerspective(srcImg, homography, transform, homography.size());
 
+		vector<Point2f> srcPoints;
+		vector<Point2f> destPoints;
+
+		for (size_t j = 0; j < 4; j++) {
+			srcPoints.push_back(quads[j]);
+		}
+
+		for (size_t j = 0; j < 4; j++) {
+			destPoints.push_back(temp[j]);
+		}
+
 		/* Draw of contours along the 4 cards */
 		polylines(srcImg, listOfContours[i], true, CONTOURCOLOR, 3);
 
@@ -217,17 +228,6 @@ int main(int argc, char** argv) {
 		Size textSizeWinner = getTextSize("Winner", FONT_HERSHEY_SCRIPT_SIMPLEX, 5, 4, &baseline);
 		Point winnerTextOrg((winnerTextMatrix.cols - textSizeWinner.width) / 2, (winnerTextMatrix.rows + textSizeWinner.height) / 2);
 		putText(winnerTextMatrix, "Winner", winnerTextOrg, FONT_HERSHEY_SCRIPT_SIMPLEX, 5, WINNER_FONT_COLOR, 4, CV_AA);
-
-		vector<Point2f> srcPoints;
-		vector<Point2f> destPoints;
-
-		for (size_t j = 0; j < 4; j++) {
-			srcPoints.push_back(quads[j]);
-		}
-
-		for (size_t j = 0; j < 4; j++) {
-			destPoints.push_back(temp[j]);
-		}
 
 		/* Transform matrix that was applied to the card to obtain the homograpy */
 		Mat textHomography = findHomography(srcPoints, destPoints);
