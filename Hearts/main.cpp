@@ -38,10 +38,10 @@
 #define THRESHOLD_MERGE_MAX 255
 
 /* Colors */
-#define CONTOURCOLOR			Scalar(0,   0, 255)
-#define WINNER_CONTOURCOLOR		Scalar(26, 255, 0)
-#define LOSER_FONT_COLOR		Scalar(0, 195, 255)
-#define WINNER_FONT_COLOR		Scalar(0, 255,  36)
+#define CONTOUR_COLOR			Scalar(0,     0, 255)
+#define WINNER_CONTOUR_COLOR	Scalar(26,  255,   0)
+#define LOSER_FONT_COLOR		Scalar(0,   195, 255)
+#define WINNER_FONT_COLOR		Scalar(0,   255,  36)
 
 using namespace cv;
 using namespace std;
@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
 		}
 
 		/* Draw of contours along the 4 cards */
-		polylines(srcImg, listOfContours[i], true, CONTOURCOLOR, 3);
+		polylines(srcImg, listOfContours[i], true, CONTOUR_COLOR, 3);
 
 		/* Creation and wraping of text homographies */
 
@@ -314,7 +314,7 @@ int main(int argc, char** argv) {
 
 	Mat finalImg = srcImg;
 
-	polylines(finalImg, winner.getContours(), true, WINNER_CONTOURCOLOR, 3);
+	polylines(finalImg, winner.getContours(), true, WINNER_CONTOUR_COLOR, 3);
 
 	for (size_t i = 0; i < cardsInPlay.size(); i++) {
 		if (cardsInPlay[i].getName() != winner.getName()) {
