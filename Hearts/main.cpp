@@ -29,6 +29,10 @@
 #define GAUSSIAN_BLUR_SIGMA_X 1000
 #define GAUSSIAN_BLUR_SIGMA_Y 1000
 
+/* Threshold parameters */
+#define THRESHOLD_MIN 0
+#define THRESHOLD_MAX 255
+
 /* Colors */
 #define CONTOURCOLOR			Scalar(0,   0, 255)
 #define WINNER_CONTOURCOLOR		Scalar(26, 255, 0)
@@ -141,7 +145,7 @@ int main(int argc, char** argv) {
 	/* Gaussian blur */
 	GaussianBlur(grayScaleMat, gaussianBlurMat, Size(GAUSSIAN_BLUR_SIZE_X, GAUSSIAN_BLUR_SIZE_Y), GAUSSIAN_BLUR_SIGMA_X, GAUSSIAN_BLUR_SIGMA_Y, 0);
 	/* Apply threshold */
-	threshold(gaussianBlurMat, thresholdMat, 120, 255, THRESH_BINARY);
+	threshold(gaussianBlurMat, thresholdMat, THRESHOLD_MIN, THRESHOLD_MAX, THRESH_BINARY);
 
 #ifdef DEBUG_INITIAL_TRANSFORMS
 	imshow("Display gray", grayScaleMat);
