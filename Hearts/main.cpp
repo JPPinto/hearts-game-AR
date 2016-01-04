@@ -33,6 +33,10 @@
 #define THRESHOLD_MIN 0
 #define THRESHOLD_MAX 255
 
+/* Threshold merge parameters */
+#define THRESHOLD_MERGE_MIN 0
+#define THRESHOLD_MERGE_MAX 255
+
 /* Colors */
 #define CONTOURCOLOR			Scalar(0,   0, 255)
 #define WINNER_CONTOURCOLOR		Scalar(26, 255, 0)
@@ -108,7 +112,7 @@ Mat mergeImages(Mat img1, Mat img2) {
 	Mat gray, gray_inv, tempFinal1, tempFinal2;
 
 	cvtColor(img2, gray, CV_BGR2GRAY);
-	threshold(gray, gray, 0, 255, CV_THRESH_BINARY);
+	threshold(gray, gray, THRESHOLD_MERGE_MIN, THRESHOLD_MERGE_MAX, CV_THRESH_BINARY);
 
 	bitwise_not(gray, gray_inv);
 
