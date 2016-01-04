@@ -24,8 +24,8 @@
 #define DECK_SIZE 52
 
 /* Gaussian blur parameters */
-#define GAUSSIAN_BLUR_SIZE_X 1
-#define GAUSSIAN_BLUR_SIZE_Y 1
+#define GAUSSIAN_BLUR_SIZE_X 5
+#define GAUSSIAN_BLUR_SIZE_Y 5
 #define GAUSSIAN_BLUR_SIGMA_X 1000
 #define GAUSSIAN_BLUR_SIGMA_Y 1000
 
